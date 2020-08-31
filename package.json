@@ -14,7 +14,8 @@
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "graphql-yoga": "^1.16.7",
-    "killport": "^1.0.1"
+    "killport": "^1.0.1",
+    "uuid": "^7.0.3"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"
