@@ -51,11 +51,13 @@ const commentsData = [
     id: 1,
     text: 'This is awesome!',
     author: '123456',
+    post: 123,
   },
   {
     id: 2,
     text: 'This is neat!',
     author: '12345678',
+    post: 125,
   },
 ];
 
@@ -84,12 +86,14 @@ const typeDefs = `
         body: String!
         published: Boolean!
         author: User!
+        comments: [Comment]!
     }
 
     type Comment {
         id: ID!
         text: String!
         author: User!
+        post: Post!
     }
 `;
 
@@ -144,11 +148,21 @@ const resolvers = {
         return user.id === parent.author;
       });
     },
+    comments(parent, args, ctx, info) {
+      return commentsData.filter((comment) => {
+        return comment.post === parent.id;
+      });
+    },
   },
   Comment: {
     author(parent, args, ctx, info) {
       return usersData.find((user) => {
         return user.id === parent.author;
+      });
+    },
+    post(parent, args, ctx, info) {
+      return postsData.find((post) => {
+        return post.id === parent.post;
       });
     },
   },
