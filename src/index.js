@@ -46,11 +46,25 @@ const postsData = [
   },
 ];
 
+const commentsData = [
+  {
+    id: 1,
+    text: 'This is awesome!',
+    author: '123456',
+  },
+  {
+    id: 2,
+    text: 'This is neat!',
+    author: '12345678',
+  },
+];
+
 // Type Definitions (Schema)
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
         posts(query: String): [Post!]!
+        comments(query: String): [Comment!]!
         me: User!
         post: Post!
     }
@@ -61,6 +75,7 @@ const typeDefs = `
         email: String!
         age: Int
         posts: [Post!]!
+        comments: [Comment!]!
     }
 
     type Post {
@@ -68,6 +83,12 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
+    }
+
+    type Comment {
+        id: ID!
+        text: String!
         author: User!
     }
 `;
@@ -93,12 +114,19 @@ const resolvers = {
           post.body.toLowerCase().includes(args.query.toLowerCase())
       );
     },
+    comments(parent, args, ctx, info) {
+      if (!args.query) {
+        return commentsData;
+      }
+      return commentsData.filter((comment) =>
+        comment.text.toLowerCase().includes(args.query.toLowerCase())
+      );
+    },
     me() {
       return {
         id: '123098',
         name: 'David Rhodes',
         email: 'david@espressocode.tech',
-        age: 56,
       };
     },
     post() {
@@ -117,10 +145,22 @@ const resolvers = {
       });
     },
   },
+  Comment: {
+    author(parent, args, ctx, info) {
+      return usersData.find((user) => {
+        return user.id === parent.author;
+      });
+    },
+  },
   User: {
     posts(parent, args, ctx, info) {
       return postsData.filter((post) => {
         return post.author === parent.id;
+      });
+    },
+    comments(parent, args, ctx, info) {
+      return commentsData.filter((comment) => {
+        return comment.author === parent.id;
       });
     },
   },
