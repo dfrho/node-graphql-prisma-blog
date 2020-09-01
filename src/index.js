@@ -73,9 +73,28 @@ const typeDefs = `
     }
 
     type Mutation {
-        createUser(name: String!, email: String!, age: Int): User!
-        createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-        createComment(text: String!, author: ID!, post: ID!): Comment!
+        createUser(user: CreateUserInput!): User!
+        createPost(post: CreatePostInput!): Post!
+        createComment(comment: CreateCommentInput!): Comment!
+    }
+
+    input CreateUserInput {
+        name: String! 
+        email: String!
+        age: Int
+    }
+
+    input CreatePostInput {
+        title: String!
+        body: String!
+        published: Boolean!
+        author: ID!
+    }
+
+    input CreateCommentInput {
+        text: String!
+        author: ID!
+        post: ID!
     }
 
     type User {
@@ -151,14 +170,16 @@ const resolvers = {
   },
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const emailTaken = usersData.some((user) => args.email === user.email);
+      const emailTaken = usersData.some(
+        (user) => args.user.email === user.email
+      );
       if (emailTaken) {
         throw new Error('email is already in use');
       }
 
       const newUser = {
         id: uuidv4(),
-        ...args,
+        ...args.user,
       };
 
       usersData.push(newUser);
@@ -167,14 +188,14 @@ const resolvers = {
     },
     createPost(parent, args, ctx, info) {
       const userExists = usersData.some((user) => {
-        return user.id === args.author;
+        return user.id === args.post.author;
       });
 
       if (!userExists) throw new Error('User does not exist');
 
       const newPost = {
         id: uuidv4(),
-        ...args,
+        ...args.post,
       };
 
       postsData.push(newPost);
@@ -182,9 +203,11 @@ const resolvers = {
       return newPost;
     },
     createComment(parent, args, ctx, info) {
-      const userExists = usersData.some((user) => user.id === args.author);
+      const userExists = usersData.some(
+        (user) => user.id === args.comment.author
+      );
       const postExists = postsData.some(
-        (post) => post.id === args.post && post.published
+        (post) => post.id === args.comment.post && post.published
       );
 
       if (!userExists || !postExists) {
@@ -193,7 +216,7 @@ const resolvers = {
 
       const newComment = {
         id: uuidv4(),
-        ...args,
+        ...args.comment,
       };
 
       commentsData.push(newComment);
