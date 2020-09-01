@@ -25,21 +25,21 @@ const usersData = [
 
 const postsData = [
   {
-    id: 123,
+    id: '123',
     title: 'Pandemic Workflows',
     body: 'Lorem Hipster Ipsum espresso',
-    published: false,
+    published: true,
     author: '123456',
   },
   {
-    id: 124,
+    id: '124',
     title: 'Pandemic Relationships',
     body: 'Lorem Hipster social distancing nespresso',
     published: false,
     author: '1234567',
   },
   {
-    id: 125,
+    id: '125',
     title: 'Pandemic Pet Adoption',
     body: 'Lorem Woofster Ipsum reindeer antlers',
     published: true,
@@ -75,6 +75,7 @@ const typeDefs = `
     type Mutation {
         createUser(name: String!, email: String!, age: Int): User!
         createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+        createComment(text: String!, author: ID!, post: ID!): Comment!
     }
 
     type User {
@@ -184,6 +185,27 @@ const resolvers = {
       postsData.push(newPost);
 
       return newPost;
+    },
+    createComment(parent, args, ctx, info) {
+      const userExists = usersData.some((user) => user.id === args.author);
+      const postExists = postsData.some(
+        (post) => post.id === args.post && post.published
+      );
+
+      if (!userExists || !postExists) {
+        throw new Error('Unable to find user or post');
+      }
+
+      const newComment = {
+        id: uuidv4(),
+        text: args.text,
+        author: args.author,
+        post: args.post,
+      };
+
+      commentsData.push(newComment);
+
+      return newComment;
     },
   },
   Post: {
