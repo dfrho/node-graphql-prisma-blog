@@ -72,69 +72,6 @@ let commentsData = [
   },
 ];
 
-// Type Definitions (Schema)
-const typeDefs = `
-    type Query {
-        users(query: String): [User!]!
-        posts(query: String): [Post!]!
-        comments(query: String): [Comment!]!
-        me: User!
-        post: Post!
-    }
-
-    type Mutation {
-        createUser(user: CreateUserInput!): User!
-        deleteUser(id: ID!): User!
-        createPost(post: CreatePostInput!): Post!
-        deletePost(id: ID!): Post!
-        createComment(comment: CreateCommentInput!): Comment!
-    }
-
-    input CreateUserInput {
-        name: String! 
-        email: String!
-        age: Int
-    }
-
-    input CreatePostInput {
-        title: String!
-        body: String!
-        published: Boolean!
-        author: ID!
-    }
-
-    input CreateCommentInput {
-        text: String!
-        author: ID!
-        post: ID!
-    }
-
-    type User {
-        id: ID!
-        name: String!
-        email: String!
-        age: Int
-        posts: [Post!]!
-        comments: [Comment!]!
-    }
-
-    type Post {
-        id: ID!
-        title: String!
-        body: String!
-        published: Boolean!
-        author: User!
-        comments: [Comment]!
-    }
-
-    type Comment {
-        id: ID!
-        text: String!
-        author: User!
-        post: Post!
-    }
-`;
-
 // Resolvers
 const resolvers = {
   Query: {
@@ -240,6 +177,7 @@ const resolvers = {
     },
     deletePost(parent, args, ctx, info) {
       const postIndex = postsData.findIndex((post) => post.id === args.id);
+
       if (postIndex === -1) throw new Error('Post does not exist.');
       const deletedPost = postsData.splice(postIndex, 1)[0];
 
@@ -267,6 +205,17 @@ const resolvers = {
       commentsData.push(newComment);
 
       return newComment;
+    },
+    deleteComment(parent, args, ctx, info) {
+      const commentIndex = commentsData.findIndex(
+        (comment) => comment.id === args.id
+      );
+
+      if (commentIndex === -1) throw new Error('Comment does not exist.');
+
+      const deletedComment = commentsData.splice(commentIndex, 1)[0];
+
+      return deletedComment;
     },
   },
   Post: {
@@ -308,7 +257,7 @@ const resolvers = {
 };
 
 const server = new GraphQLServer({
-  typeDefs,
+  typeDefs: './src/schema.graphql',
   resolvers,
 });
 
