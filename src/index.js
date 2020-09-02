@@ -1,64 +1,74 @@
 import { GraphQLServer } from 'graphql-yoga';
 import { v4 as uuidv4 } from 'uuid';
 
-// Demo Data
-const usersData = [
+// Demo user data
+let usersData = [
   {
-    id: '123456',
-    name: 'David Rhodes',
-    email: 'rhodesdav@gmail.com',
-    age: 56,
+    id: '1',
+    name: 'Andrew',
+    email: 'andrew@example.com',
+    age: 27,
   },
   {
-    id: '1234567',
-    name: 'Shelly Schwentker',
-    email: 'shelly@gmail.com',
-    age: 53,
+    id: '2',
+    name: 'Sarah',
+    email: 'sarah@example.com',
   },
   {
-    id: '12345678',
-    name: 'Lisa Carver',
-    email: 'lmcatt@gmail.com',
-    age: 57,
+    id: '3',
+    name: 'Mike',
+    email: 'mike@example.com',
   },
 ];
 
-const postsData = [
+let postsData = [
   {
-    id: '123',
-    title: 'Pandemic Workflows',
-    body: 'Lorem Hipster Ipsum espresso',
+    id: '10',
+    title: 'GraphQL 101',
+    body: 'This is how to use GraphQL...',
     published: true,
-    author: '123456',
+    author: '1',
   },
   {
-    id: '124',
-    title: 'Pandemic Relationships',
-    body: 'Lorem Hipster social distancing nespresso',
+    id: '11',
+    title: 'GraphQL 201',
+    body: 'This is an advanced GraphQL post...',
     published: false,
-    author: '1234567',
+    author: '1',
   },
   {
-    id: '125',
-    title: 'Pandemic Pet Adoption',
-    body: 'Lorem Woofster Ipsum reindeer antlers',
+    id: '12',
+    title: 'Programming Music',
+    body: '',
     published: true,
-    author: '12345678',
+    author: '2',
   },
 ];
 
-const commentsData = [
+let commentsData = [
   {
-    id: 1,
-    text: 'This is awesome!',
-    author: '123456',
-    post: 123,
+    id: '102',
+    text: 'This worked well for me. Thanks!',
+    author: '3',
+    post: '10',
   },
   {
-    id: 2,
-    text: 'This is neat!',
-    author: '12345678',
-    post: 125,
+    id: '103',
+    text: 'Glad you enjoyed it.',
+    author: '1',
+    post: '10',
+  },
+  {
+    id: '104',
+    text: 'This did no work.',
+    author: '2',
+    post: '11',
+  },
+  {
+    id: '105',
+    text: 'Nevermind. I got it to work.',
+    author: '1',
+    post: '12',
   },
 ];
 
@@ -74,6 +84,7 @@ const typeDefs = `
 
     type Mutation {
         createUser(user: CreateUserInput!): User!
+        deleteUser(id: ID!): User!
         createPost(post: CreatePostInput!): Post!
         createComment(comment: CreateCommentInput!): Comment!
     }
@@ -185,6 +196,30 @@ const resolvers = {
       usersData.push(newUser);
 
       return newUser;
+    },
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = usersData.findIndex((user) => user.id === args.id);
+      if (userIndex === -1) throw new Error('User does not exist.');
+
+      const deletedUser = usersData.splice(userIndex, 1)[0];
+
+      postsData = postsData.filter((post) => {
+        const match = post.author === args.id;
+
+        if (match) {
+          commentsData = commentsData.filter(
+            (comment) => comment.post !== post.id
+          );
+        }
+
+        return !match;
+      });
+
+      commentsData = commentsData.filter(
+        (comment) => comment.author !== args.id
+      );
+
+      return deletedUser;
     },
     createPost(parent, args, ctx, info) {
       const userExists = usersData.some((user) => {
