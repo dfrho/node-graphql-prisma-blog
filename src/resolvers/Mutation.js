@@ -142,6 +142,17 @@ const Mutation = {
 
     return deletedComment;
   },
+  updateComment(parent, args, { db }, info) {
+    const { id, data } = args;
+    const foundComment = db.commentsData.find((comment) => comment.id === id);
+    if (!foundComment) throw new Error('Comment not found.');
+
+    if (typeof data.text === 'string') {
+      foundComment.text = data.text;
+    }
+
+    return foundComment;
+  },
 };
 
 export { Mutation as default };
