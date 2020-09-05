@@ -106,9 +106,12 @@ const Mutation = {
 
     return deletedPost;
   },
-  updatePost(parent, args, { db }, info) {
+  // eslint-disable-next-line complexity
+  updatePost(parent, args, { db, pubsub }, info) {
     const { id, data } = args;
     const foundPost = db.postsData.find((post) => post.id === id);
+    const originalPost = { ...foundPost };
+
     if (!foundPost) throw new Error('Post not found.');
 
     if (typeof data.title === 'string') {
@@ -121,6 +124,29 @@ const Mutation = {
 
     if (typeof data.published === 'boolean') {
       foundPost.published = data.published;
+
+      if (!originalPost.published && foundPost.published) {
+        pubsub.publish(`channel-posts`, {
+          post: {
+            mutation: `CREATED`,
+            data: foundPost,
+          },
+        });
+      } else if (originalPost.published && !foundPost.published) {
+        pubsub.publish(`channel-posts`, {
+          post: {
+            mutation: `DELETED`,
+            data: originalPost,
+          },
+        });
+      }
+    } else if (foundPost.published) {
+      pubsub.publish(`channel-posts`, {
+        post: {
+          mutation: `UPDATED`,
+          data: foundPost,
+        },
+      });
     }
 
     return foundPost;
