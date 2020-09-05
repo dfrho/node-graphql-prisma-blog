@@ -110,7 +110,7 @@ const Mutation = {
 
     return foundPost;
   },
-  createComment(parent, args, { db }, info) {
+  createComment(parent, args, { db, pubsub }, info) {
     const userExists = db.usersData.some(
       (user) => user.id === args.comment.author
     );
@@ -128,6 +128,9 @@ const Mutation = {
     };
 
     db.commentsData.push(newComment);
+    pubsub.publish(`channel-${args.comment.post}`, {
+      comment: newComment,
+    });
 
     return newComment;
   },
