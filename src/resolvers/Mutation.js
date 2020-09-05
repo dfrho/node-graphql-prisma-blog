@@ -63,7 +63,7 @@ const Mutation = {
 
     return foundUser;
   },
-  createPost(parent, args, { db }, info) {
+  createPost(parent, args, { db, pubsub }, info) {
     const userExists = db.usersData.some((user) => {
       return user.id === args.post.author;
     });
@@ -76,6 +76,10 @@ const Mutation = {
     };
 
     db.postsData.push(newPost);
+    newPost.published &&
+      pubsub.publish(`channel-posts`, {
+        post: newPost,
+      });
 
     return newPost;
   },

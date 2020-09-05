@@ -1,16 +1,4 @@
 const Subscription = {
-  count: {
-    subscribe(parent, args, { pubsub }, info) {
-      let count = 0;
-      setInterval(() => {
-        count++;
-        pubsub.publish('count', {
-          count,
-        });
-      }, 1000);
-      return pubsub.asyncIterator('count');
-    },
-  },
   comment: {
     subscribe(parents, { postID }, { db, pubsub }, info) {
       const foundPost = db.postsData.find(
@@ -21,6 +9,11 @@ const Subscription = {
       }
 
       return pubsub.asyncIterator(`channel-${postID}`);
+    },
+  },
+  post: {
+    subscribe(parents, args, { pubsub }, info) {
+      return pubsub.asyncIterator(`channel-posts`);
     },
   },
 };
