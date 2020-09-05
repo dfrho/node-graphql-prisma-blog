@@ -78,12 +78,15 @@ const Mutation = {
     db.postsData.push(newPost);
     newPost.published &&
       pubsub.publish(`channel-posts`, {
-        post: newPost,
+        post: {
+          mutation: 'CREATED',
+          data: newPost,
+        },
       });
 
     return newPost;
   },
-  deletePost(parent, args, { db }, info) {
+  deletePost(parent, args, { db, pubsub }, info) {
     const postIndex = db.postsData.findIndex((post) => post.id === args.id);
 
     if (postIndex === -1) throw new Error('Post does not exist.');
@@ -92,6 +95,14 @@ const Mutation = {
     db.commentsData = db.commentsData.filter(
       (comment) => comment.post !== args.id
     );
+    if (deletedPost.published) {
+      pubsub.publish('channel-posts', {
+        post: {
+          mutation: `DELETED`,
+          data: deletedPost,
+        },
+      });
+    }
 
     return deletedPost;
   },
