@@ -170,12 +170,15 @@ const Mutation = {
 
     db.commentsData.push(newComment);
     pubsub.publish(`channel-${args.comment.post}`, {
-      comment: newComment,
+      comment: {
+        mutation: `CREATED`,
+        data: newComment,
+      },
     });
 
     return newComment;
   },
-  deleteComment(parent, args, { db }, info) {
+  deleteComment(parent, args, { db, pubsub }, info) {
     const commentIndex = db.commentsData.findIndex(
       (comment) => comment.id === args.id
     );
@@ -183,10 +186,16 @@ const Mutation = {
     if (commentIndex === -1) throw new Error('Comment does not exist.');
 
     const deletedComment = db.commentsData.splice(commentIndex, 1)[0];
+    pubsub.publish(`channel-${deletedComment.post}`, {
+      comment: {
+        mutation: `DELETED`,
+        data: deletedComment,
+      },
+    });
 
     return deletedComment;
   },
-  updateComment(parent, args, { db }, info) {
+  updateComment(parent, args, { db, pubsub }, info) {
     const { id, data } = args;
     const foundComment = db.commentsData.find((comment) => comment.id === id);
     if (!foundComment) throw new Error('Comment not found.');
@@ -194,6 +203,13 @@ const Mutation = {
     if (typeof data.text === 'string') {
       foundComment.text = data.text;
     }
+
+    pubsub.publish(`channel-${foundComment.post}`, {
+      comment: {
+        mutation: `UPDATED`,
+        data: foundComment,
+      },
+    });
 
     return foundComment;
   },
